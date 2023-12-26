@@ -1,0 +1,8 @@
+<!-- dialog_border.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FFFFFF"/> <!-- Màu nền trắng -->
+    <stroke
+        android:width="5dp"
+        android:color="#F44336"/> <!-- Màu của viền -->
+    <corners android:radius="16dp"/> <!-- Độ cong của góc -->
+</shape>
