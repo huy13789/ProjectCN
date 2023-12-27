@@ -4,6 +4,9 @@ import com.google.gson.annotations.SerializedName;
 
 public class TotalQuestionsScore {
 
+    public TotalQuestionsScore(){
+
+    }
     public TotalQuestionsScore(User user, Quiz quizResponse, Double totalScore) {
         this.user = user;
         this.quiz = quizResponse;

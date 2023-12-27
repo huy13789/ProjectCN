@@ -18,6 +18,8 @@ import android.widget.Toast;
 import com.example.projectcn.R;
 import com.example.projectcn.View.Login;
 import com.example.projectcn.datalocal.PreferenceManager;
+import com.example.projectcn.interfaces.QuestionScoreAPI;
+import com.example.projectcn.interfaces.QuestionsAPI;
 import com.example.projectcn.interfaces.TotalQuestionsScoreAPI;
 import com.example.projectcn.model.Answers;
 import com.example.projectcn.model.QuestionsRespone;
@@ -30,6 +32,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +57,8 @@ public class questionsActivity extends AppCompatActivity {
     private int numberquestions;
     private int iscorret = 0;
     private int isnotcorret = 0;
+    List<QuestionsScore> questionsScores = new ArrayList<>();
+    private Long idtotalscore = null;
 
     PreferenceManager preferenceManager= new PreferenceManager(this);
 
@@ -137,7 +142,6 @@ public class questionsActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 cancelCountDownTimer();
-                List<QuestionsScore> questionsScores = new ArrayList<>();
                 for (QuestionsRespone question : questionsRespones) {
 
                     int selectedId = question.getSelectedAnswerId();
@@ -164,7 +168,6 @@ public class questionsActivity extends AppCompatActivity {
                 //Điểm tổng
                 totalScore = questionsScore * (double)iscorret;
                 sendTotalScore();
-                sendDetailScore(questionsScores);
 
             }
         });
@@ -181,10 +184,7 @@ public class questionsActivity extends AppCompatActivity {
         quizResponse.setQuizId(quizId); // ID của Quiz
 
         TotalQuestionsScore totalQuestionsScore = new TotalQuestionsScore(user,quizResponse,totalScore);
-        Log.e("QuestionActivity", "Summit: " +
-                "UserId: " + totalQuestionsScore.getUser().getId() +
-                ", QuizId: " + totalQuestionsScore.getQuiz().getQuizId() +
-                ", TotalScore: " + totalQuestionsScore.getTotalScore());
+
         TotalQuestionsScoreAPI totalQuestionsScoreAPI = RetrofitClient.getClient().create(TotalQuestionsScoreAPI.class);
         Call<ResponseBody> call = totalQuestionsScoreAPI.saveTotalScore(totalQuestionsScore);
         Log.e("TotalQuestionsScoreAPI", "sd" + new Gson().toJson(totalQuestionsScore));
@@ -194,6 +194,13 @@ public class questionsActivity extends AppCompatActivity {
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(questionsActivity.this, "Đã summit thành công", Toast.LENGTH_SHORT).show();
+                    String id;
+                    try {
+                        id = response.body().string();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    linkID(id);
                 } else {
                     Toast.makeText(questionsActivity.this, "Không thành công", Toast.LENGTH_SHORT).show();
                 }
@@ -205,8 +212,33 @@ public class questionsActivity extends AppCompatActivity {
             }
         });
     }
-    public void sendDetailScore(List<QuestionsScore> questionsScores){
-        
+    public void sendDetailScore(List<QuestionsScore> questionsScores, Long idtotalscore){
+        TotalQuestionsScore totalQuestionsScore = new TotalQuestionsScore();
+        totalQuestionsScore.setId(idtotalscore);
+
+        for (QuestionsScore questionsScore : questionsScores) {
+            questionsScore.setTotalQuestionsScore(totalQuestionsScore);
+        }
+
+        QuestionScoreAPI questionScoreAPI =RetrofitClient.getClient().create(QuestionScoreAPI.class);
+        Call<ResponseBody> call = questionScoreAPI.saveDetailScore(questionsScores);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()){
+                    Log.e("QA","Thêm thành công " + new Gson().toJson(questionsScores));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+
+            }
+        });
+    }
+    public void linkID(String s){
+        idtotalscore = Long.parseLong(s);
+        sendDetailScore(questionsScores,idtotalscore);
     }
     private boolean checkAnswer(int selectedId, int correctAnswer) {
         return selectedId == correctAnswer;

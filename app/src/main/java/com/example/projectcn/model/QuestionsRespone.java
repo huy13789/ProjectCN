@@ -84,7 +84,7 @@ public class QuestionsRespone {
     private Answers answers;
 
     // Trường mới để lưu trữ ID RadioButton được chọn bởi người dùng
-    private int selectedAnswerId = -1;
+    private int selectedAnswerId = 5;
 
     public int getSelectedAnswerId() {
         return selectedAnswerId;
