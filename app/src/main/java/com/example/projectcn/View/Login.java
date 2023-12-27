@@ -174,6 +174,7 @@ public class Login extends AppCompatActivity {
                         Claims claims = jwtService.validateToken(token);
                         String userIdClaim = String.valueOf(claims.get("userId"));
                         Long userId = Long.parseLong(userIdClaim);
+                        Log.e("SaveID User","Shared: "+userId);
                         preferenceManager.saveId(userId);
                         Toast.makeText(Login.this, "Đăng nhập thành công!", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);

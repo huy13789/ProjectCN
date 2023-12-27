@@ -45,12 +45,12 @@ public class TotalQuestionsScore {
     @SerializedName("totalScoreId")
     private Long totalScoreId;
 
-    @SerializedName("user_id")
+    @SerializedName("user")
     private User user;
 
-    @SerializedName("quiz_id")
+    @SerializedName("quiz")
     private Quiz quiz;
 
-    @SerializedName("total_score")
+    @SerializedName("totalScore")
     private double totalScore;
 }

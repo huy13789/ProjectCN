@@ -14,4 +14,10 @@ public class QuestionsScore {
 
     @SerializedName("is_correct")
     private boolean isCorrect;
+
+    public QuestionsScore(QuestionsRespone question, Answers userAnswer, boolean isCorrect) {
+        this.question = question;
+        this.userAnswer = userAnswer;
+        this.isCorrect = isCorrect;
+    }
 }

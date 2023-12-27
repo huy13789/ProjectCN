@@ -8,5 +8,5 @@ import retrofit2.http.POST;
 
 public interface TotalQuestionsScoreAPI {
     @POST("totalScore/save")
-    Call<TotalQuestionsScore> saveTotalScore(@Body TotalQuestionsScore totalScore);
+    Call<ResponseBody> saveTotalScore(@Body TotalQuestionsScore totalScore);
 }

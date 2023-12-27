@@ -16,15 +16,16 @@ public class PreferenceManager {
     }
 
     public void saveId(Long id) {
-        mySharedPreferences.putString(KEY_IDUSER, String.valueOf(id)); // Convert Long to String and save
+        mySharedPreferences.putString(KEY_IDUSER, String.valueOf(id));
     }
 
-    public Long getId() {
+    public String getId() {
         String idString = mySharedPreferences.getString(KEY_IDUSER);
+        Long id = Long.parseLong(idString);
         try {
-            return Long.parseLong(idString); // Convert String back to Long
+            return mySharedPreferences.getString(KEY_IDUSER);
         } catch (NumberFormatException e) {
-            return null; // Return null if the string cannot be parsed into a Long
+            return null;
         }
     }
 

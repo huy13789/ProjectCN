@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -18,12 +19,15 @@ import com.example.projectcn.R;
 import com.example.projectcn.View.Login;
 import com.example.projectcn.datalocal.PreferenceManager;
 import com.example.projectcn.interfaces.TotalQuestionsScoreAPI;
+import com.example.projectcn.model.Answers;
 import com.example.projectcn.model.QuestionsRespone;
+import com.example.projectcn.model.QuestionsScore;
 import com.example.projectcn.model.Quiz;
 import com.example.projectcn.model.TotalQuestionsScore;
 import com.example.projectcn.model.User;
 import com.example.projectcn.model.connect.RetrofitClient;
 import com.google.gson.Gson;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
@@ -31,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -50,7 +55,7 @@ public class questionsActivity extends AppCompatActivity {
     private int iscorret = 0;
     private int isnotcorret = 0;
 
-    PreferenceManager preferenceManager;
+    PreferenceManager preferenceManager= new PreferenceManager(this);
 
 
     @Override
@@ -131,14 +136,14 @@ public class questionsActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Hủy bỏ bộ đếm thời gian
                 cancelCountDownTimer();
-                // Xử lý hành động khi nhấn nút Submit (nếu cần)
+                List<QuestionsScore> questionsScores = new ArrayList<>();
                 for (QuestionsRespone question : questionsRespones) {
+
                     int selectedId = question.getSelectedAnswerId();
                     int correctAnswer = question.getAnswers().getIdAsInt();
-                    // So sánh đáp án người dùng chọn với đáp án đúng
-                    boolean isCorrect = checkAnswer(selectedId, correctAnswer);
+
+                    boolean isCorrect = checkAnswer(selectedId, correctAnswer);// So sánh đáp án
                     if(isCorrect){
                         //Câu đúng
                         iscorret++;
@@ -146,10 +151,21 @@ public class questionsActivity extends AppCompatActivity {
                         //Câu sai
                         isnotcorret++;
                     }
+
+                    QuestionsRespone questionsRespone = new QuestionsRespone();
+                    questionsRespone.setId(question.getId());
+
+                    Answers answers = new Answers();
+                    answers.setId((long) question.getSelectedAnswerId());
+
+                    QuestionsScore questionsScore = new QuestionsScore(questionsRespone,answers,isCorrect);
+                    questionsScores.add(questionsScore);
                 }
                 //Điểm tổng
                 totalScore = questionsScore * (double)iscorret;
                 sendTotalScore();
+                sendDetailScore(questionsScores);
+
             }
         });
 
@@ -158,41 +174,41 @@ public class questionsActivity extends AppCompatActivity {
     }
 
     public void sendTotalScore() {
-
         User user = new User();
-        user.setId(1L);
+        user.setId(Long.parseLong(preferenceManager.getId()));
 
         Quiz quizResponse = new Quiz();
-        quizResponse.setQuizId(1L); // ID của Quiz
+        quizResponse.setQuizId(quizId); // ID của Quiz
 
         TotalQuestionsScore totalQuestionsScore = new TotalQuestionsScore(user,quizResponse,totalScore);
-
+        Log.e("QuestionActivity", "Summit: " +
+                "UserId: " + totalQuestionsScore.getUser().getId() +
+                ", QuizId: " + totalQuestionsScore.getQuiz().getQuizId() +
+                ", TotalScore: " + totalQuestionsScore.getTotalScore());
         TotalQuestionsScoreAPI totalQuestionsScoreAPI = RetrofitClient.getClient().create(TotalQuestionsScoreAPI.class);
-        Call<TotalQuestionsScore> call = totalQuestionsScoreAPI.saveTotalScore(totalQuestionsScore);
+        Call<ResponseBody> call = totalQuestionsScoreAPI.saveTotalScore(totalQuestionsScore);
+        Log.e("TotalQuestionsScoreAPI", "sd" + new Gson().toJson(totalQuestionsScore));
 
-        call.enqueue(new Callback<TotalQuestionsScore>() {
+        call.enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onResponse(Call<TotalQuestionsScore> call, Response<TotalQuestionsScore> response) {
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(questionsActivity.this, "Đã summit thành công", Toast.LENGTH_SHORT).show();
                 } else {
-
+                    Toast.makeText(questionsActivity.this, "Không thành công", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<TotalQuestionsScore> call, Throwable t) {
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
                 // Xử lý lỗi mạng hoặc lỗi khác
             }
         });
     }
-
-
-
-
+    public void sendDetailScore(List<QuestionsScore> questionsScores){
+        
+    }
     private boolean checkAnswer(int selectedId, int correctAnswer) {
-        // Logic để xác định đáp án người dùng chọn có đúng hay không
-        // Ví dụ: so sánh ID của RadioButton với giá trị trong correctAnswer
         return selectedId == correctAnswer;
     }
     private void initializeCountDownTimer(long duration) {
