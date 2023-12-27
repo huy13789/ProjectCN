@@ -181,7 +181,7 @@ public class questionsActivity extends AppCompatActivity {
         user.setId(Long.parseLong(preferenceManager.getId()));
 
         Quiz quizResponse = new Quiz();
-        quizResponse.setQuizId(quizId); // ID của Quiz
+        quizResponse.setQuizId(quizId);
 
         TotalQuestionsScore totalQuestionsScore = new TotalQuestionsScore(user,quizResponse,totalScore);
 
